@@ -24,11 +24,24 @@ spl_autoload_register('classAutoLoad');
     $ObjMenus = new menus();
     $ObjHeadings = new headings();
     $ObjCont = new contents();
-    $ObjForm = new user_forms();
-    $conn = new dbConnection(DBTYPE, HOSTNAME, DBPORT, HOSTUSER, HOSTPASS, DBNAME);
+
+require "includes/constants.php";
+require "includes/dbConnection.php";
+
+$conn = new dbConnection(DBTYPE, HOSTNAME, DBPORT, HOSTUSER, HOSTPASS, DBNAME);
 
 
-// Create process instances
-
-    $ObjAuth = new auth();
-    $ObjAuth->signup($conn);
+// print 
+// print "<br>";
+// print "<br>";
+// print $_SERVER["PHP_SELF"];
+// print "<br>";
+// print "<br>";
+// print basename($_SERVER["PHP_SELF"]);
+// print "<br>";
+// print "<br>";
+// if(file_exists("index.php") AND is_readable("index.php")){
+//     print "yes";
+// }else{
+//     print "no";
+// }
