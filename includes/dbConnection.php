@@ -188,3 +188,30 @@
 		break;
 		}
 	}
+
+
+
+    public function extracted(string $sth)
+    {
+        switch ($this->db_type) {
+            case 'PDO':
+                try {
+                    // Prepare statement
+                    $stmt = $this->connection->prepare($sth);
+                    // execute the query
+                    $stmt->execute();
+                    return TRUE;
+                } catch (PDOException $e) {
+                    return $sth . "<br>" . $e->getMessage();
+                }
+                break;
+            case 'MySQLi':
+                if ($this->connection->query($sth) === TRUE) {
+                    return TRUE;
+                } else {
+                    return "Error: " . $sth . "<br>" . $this->connection->error;
+                }
+                break;
+        }
+    }
+}
