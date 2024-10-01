@@ -59,3 +59,23 @@
         }
         return $this->posted_values;
     }
+
+
+
+    public function count_results($sql){
+        switch ($this->db_type) {
+            case 'PDO':
+                $res = $this->connection->prepare($sql);
+                $res->execute();
+                return $res->rowCount();
+                break;
+            case 'MySQLi':
+                if(is_object($this->connection->query($sql))){
+                    $result = $this->connection->query($sql);
+                    return $result->num_rows;
+                }else{
+                    print "Error 5: " . $sql . "<br />" . $this->connection->error . "<br />";
+                }
+                break;
+        }
+    }
