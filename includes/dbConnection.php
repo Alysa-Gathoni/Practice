@@ -32,22 +32,22 @@
                         // echo "Connected successfully :-)";
                       } catch(PDOException $e) { return "Connection failed: " . $e->getMessage(); }
                       break;
-                      case 'MySQLi' :
-                        if($db_port<>Null){
-                            $db_host .= ":" . $db_port;
-                        }
-                        // Create connection
-                        $this->connection = new mysqli($db_host, $db_user, $db_pass, $db_name);
-                        // Check connection
-                        if ($this->connection->connect_error) { return "Connection failed: " . $this->connection->connect_error; } else{ echo "Connected successfully"; }
-                        break;
-                }
+                case 'MySQLi' :
+                    if($db_port<>Null){
+                        $db_host .= ":" . $db_port;
+                    }
+                    // Create connection
+                    $this->connection = new mysqli($db_host, $db_user, $db_pass, $db_name);
+                    // Check connection
+                    if ($this->connection->connect_error) { return "Connection failed: " . $this->connection->connect_error; } else{ echo "Connected successfully"; }
+                    break;
             }
+        }
 
-
-
-
-            public function escape_values($posted_values): string
+/**************************************************************************************************
+ * MySQLi Real Escape String (tested) Method
+ ***************************************************************************************************/
+    public function escape_values($posted_values): string
     {
         switch ($this->db_type) {
             case 'PDO':
@@ -59,9 +59,9 @@
         }
         return $this->posted_values;
     }
-
-
-
+/**************************************************************************************************
+ * Count Returned Results (tested) Method
+ ***************************************************************************************************/
     public function count_results($sql){
         switch ($this->db_type) {
             case 'PDO':
@@ -79,9 +79,9 @@
                 break;
         }
     }
-
-
-
+/**************************************************************************************************
+ * Insert Query Method
+ ***************************************************************************************************/
     public function insert($table, $data){
         ksort($data);
         $fieldDetails = NULL;
@@ -90,9 +90,9 @@
         $sth = "INSERT INTO $table (`$fieldNames`) VALUES ('$fieldValues')";
         return $this->extracted($sth);
     }
-
-
-
+/**************************************************************************************************
+* Select Query From a DataBase Method
+ ***************************************************************************************************/
     public function select($sql){
         switch ($this->db_type) {
             case 'PDO':
@@ -106,9 +106,9 @@
                 break;
         }
     }
-
-
-
+/***************************************************************************************************
+* Select Query While Loop From a DataBase (tested) Method
+ ***************************************************************************************************/
     public function select_while($sql){
         switch ($this->db_type) {
             case 'PDO':
@@ -123,9 +123,9 @@
                 break;
         }
     }
-
-
-
+/**************************************************************************************************
+ * Update Query (extracted) (tested) Method
+ ***************************************************************************************************/
     public function update($table, $data, $where){
         $wer = '';
         if(is_array($where)){
@@ -148,9 +148,9 @@
         }
         return $this->extracted($sth);
     }
-
-
-
+/**************************************************************************************************
+ * Delete Query (extracted) (tested) Method
+ ***************************************************************************************************/
     public function delete($table,$where){
         $wer = '';
         if(is_array($where)){
@@ -167,18 +167,18 @@
         }
             return $this->extracted($sth);
     }
-
-
-
+/**************************************************************************************************
+ * Truncate Query (extracted) Method
+ ***************************************************************************************************/
     public function truncate($table){
         $sth = "TRUNCATE $table";
         return $this->extracted($sth);
     }
-
-
-
-
-    public function last_id(){
+	
+/**************************************************************************************************
+ * Get ID of Last Inserted Record Method
+ ***************************************************************************************************/
+	public function last_id(){
         switch ($this->db_type) {
         case 'PDO':
                 return $this->connection->lastInsertId();
@@ -187,10 +187,14 @@
 			return $this->connection->insert_id;
 		break;
 		}
-	}
-
-
-
+	}	
+/**************************************************************************************************
+ * Extracted (tested) Method
+ ***************************************************************************************************/
+    /**
+     * @param string $sth
+     * @return bool|string|void
+     */
     public function extracted(string $sth)
     {
         switch ($this->db_type) {
