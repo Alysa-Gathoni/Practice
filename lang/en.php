@@ -18,6 +18,6 @@ Or user unique code <h1>{{verification_code}}</h1>
 Unique codes expire after 24 hours.
 
 Regards,
-Systems Admin
+The Administrator
 {{site_full_name}}
 ";

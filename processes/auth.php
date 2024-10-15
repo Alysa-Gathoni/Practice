@@ -130,4 +130,49 @@ if(!count($errors)){
         }
         }
     }
+
+    public function setPassword($conn, $ObjGlob, $lang, $conf) {
+        if(isset($_POST['set_password'])) {
+            // Capture password input
+            $password = $_POST['password'];
+            $confirm_password = $_POST['confirm_password'];
+            $errors = [];
+            
+            // Validate password input
+            if(empty($password) || empty($confirm_password)) {
+                $errors['password_err'] = $lang['password_empty']; // Error if fields are empty
+            } elseif($password !== $confirm_password) {
+                $errors['confirm_password_err'] = $lang['passwords_mismatch']; // Error if passwords do not match
+            } elseif(strlen($password) < 8) {
+                $errors['password_err'] = $lang['password_too_short']; // Error if password is too short
+            }
+            
+            // Proceed only if no errors
+            if(empty($errors)) {
+                // Hash the password using BCRYPT
+                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+                
+                // Assume the user ID is stored in session from the verification process
+                $user_id = $_SESSION['user_id'];
+                
+                // Prepare SQL query to update password in the database
+                $sql = "UPDATE users SET password = :password WHERE userID = :userID";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':password', $hashed_password);
+                $stmt->bindParam(':userID', $user_id);
+                
+                // Execute the query and check if the password was updated successfully
+                if($stmt->execute()) {
+                    // Set a success message if update was successful
+                    $ObjGlob->setMsg('msg', $lang['password_set_success']);
+                } else {
+                    // Set an error message if the update failed
+                    $ObjGlob->setMsg('msg', $lang['password_set_failed']);
+                }
+            } else {
+                // If there are validation errors, set them to be displayed
+                $ObjGlob->setMsg('errors', $errors);
+            }
+        }
+    }
 }

@@ -35,3 +35,4 @@ function classAutoLoad($classname){
     $ObjAuth = new auth();
     $ObjAuth->signup($conn, $ObjGlob, $ObjSendMail, $lang, $conf);
     $ObjAuth->verify_code($conn, $ObjGlob, $ObjSendMail, $lang, $conf);
+    $ObjAuth->setPassword($conn, $ObjGlob, $lang, $conf);
