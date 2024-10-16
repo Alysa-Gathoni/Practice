@@ -58,33 +58,32 @@ class user_forms{
           </div>
         </div>
 <?php
-    }   public function set_password_form($ObjGlob){
-    ?>
-          <div class="row align-items-md-stretch">
-            <div class="col-md-9">
+    }   public function set_password_form($ObjGlob) {
+      ?>
+      <div class="row align-items-md-stretch">
+          <div class="col-md-9">
               <div class="h-100 p-5 text-bg-dark rounded-3">
-                <h2>Set Password</h2>
-                <?php
-                print $ObjGlob->getMsg('msg');
-                $err = $ObjGlob->getMsg('errors');
-                ?>
-                <form action="<?php print basename($_SERVER["PHP_SELF"]); ?>" method="POST">
-                    <div class="mb-3">
-                        <label for="password" class="form-label">New Password:</label>
-                        <input type="password" name="password" class="form-control form-control-lg" id="password" placeholder="Enter your new password">
-                        <?php print (isset($err['password_err'])) ? "<span class='invalid'>" . $err['password_err'] . "</span>" : '' ; ?>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password:</label>
-                        <input type="password" name="confirm_password" class="form-control form-control-lg" id="confirm_password" placeholder="Confirm your password">
-                        <?php print (isset($err['confirm_password_err'])) ? "<span class='invalid'>" . $err['confirm_password_err'] . "</span>" : '' ; ?>
-                    </div>
-                    <button type="submit" name="set_password" class="btn btn-primary">Set Password</button>
-                </form>
+                  <h2>Set Password</h2>
+                  <?php
+                  print $ObjGlob->getMsg('msg'); // Display any messages
+                  $err = $ObjGlob->getMsg('errors'); // Capture and display errors
+                  ?>
+                  <form action="<?php print basename($_SERVER["PHP_SELF"]); ?>" method="POST">
+                      <div class="mb-3">
+                          <label for="password" class="form-label">New Password:</label>
+                          <input type="password" name="password" class="form-control form-control-lg" id="password" placeholder="Enter your new password">
+                          <?php print (isset($err['password_err'])) ? "<span class='invalid'>" . $err['password_err'] . "</span>" : ''; ?>
+                      </div>
+                      <div class="mb-3">
+                          <label for="confirm_password" class="form-label">Confirm Password:</label>
+                          <input type="password" name="confirm_password" class="form-control form-control-lg" id="confirm_password" placeholder="Confirm your password">
+                          <?php print (isset($err['confirm_password_err'])) ? "<span class='invalid'>" . $err['confirm_password_err'] . "</span>" : ''; ?>
+                      </div>
+                      <button type="submit" name="set_password" class="btn btn-primary">Set Password</button>
+                  </form>
               </div>
-            </div>
-    <?php
-        }
+          </div>
+      </div>
+      <?php
     }
-    ?>
-    
+}

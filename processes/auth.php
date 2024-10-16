@@ -132,47 +132,41 @@ if(!count($errors)){
     }
 
     public function setPassword($conn, $ObjGlob, $lang, $conf) {
-        if(isset($_POST['set_password'])) {
-            // Capture password input
+        if (isset($_POST['set_password'])) {
             $password = $_POST['password'];
             $confirm_password = $_POST['confirm_password'];
             $errors = [];
-            
-            // Validate password input
-            if(empty($password) || empty($confirm_password)) {
-                $errors['password_err'] = $lang['password_empty']; // Error if fields are empty
-            } elseif($password !== $confirm_password) {
-                $errors['confirm_password_err'] = $lang['passwords_mismatch']; // Error if passwords do not match
-            } elseif(strlen($password) < 8) {
-                $errors['password_err'] = $lang['password_too_short']; // Error if password is too short
+    
+            // Validate inputs
+            if (empty($password) || empty($confirm_password)) {
+                $errors['password_err'] = "Password fields cannot be empty.";
+            } elseif ($password !== $confirm_password) {
+                $errors['confirm_password_err'] = "Passwords do not match.";
+            } elseif (strlen($password) < 8) {
+                $errors['password_err'] = "Password must be at least 8 characters long.";
             }
-            
-            // Proceed only if no errors
-            if(empty($errors)) {
-                // Hash the password using BCRYPT
+    
+            // If there are no errors, hash the password and update in DB
+            if (empty($errors)) {
                 $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-                
-                // Assume the user ID is stored in session from the verification process
-                $user_id = $_SESSION['user_id'];
-                
-                // Prepare SQL query to update password in the database
+                $user_id = $_SESSION['user_id']; // Ensure user ID is stored in the session
+    
+                // Update password in database
                 $sql = "UPDATE users SET password = :password WHERE userID = :userID";
-                $stmt = $conn->prepare($sql);
+                $stmt = $conn->getConnection()->prepare($sql);
                 $stmt->bindParam(':password', $hashed_password);
                 $stmt->bindParam(':userID', $user_id);
-                
-                // Execute the query and check if the password was updated successfully
-                if($stmt->execute()) {
-                    // Set a success message if update was successful
-                    $ObjGlob->setMsg('msg', $lang['password_set_success']);
+    
+                if ($stmt->execute()) {
+                    $ObjGlob->setMsg('msg', "Password has been successfully set.");
                 } else {
-                    // Set an error message if the update failed
-                    $ObjGlob->setMsg('msg', $lang['password_set_failed']);
+                    $ObjGlob->setMsg('msg', "Failed to set password. Please try again.");
                 }
             } else {
-                // If there are validation errors, set them to be displayed
-                $ObjGlob->setMsg('errors', $errors);
+                // Set errors to display in the form
+                $ObjGlob->setMsg('errors', $errors, 'error-class');
             }
         }
     }
+    
 }
