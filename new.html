@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      document.write("Hello");
+    </script>
+    <br />
+    <script>
+      document.write(54 + 32);
+    </script>
+    <a href="#" onclick="document.write(254+132)">Click</a>
+    <p id="ics"></p>
+    <script>
+      document.getElementById("ics").innerHTML = "What am I doing";
+      document.getElementById("ics").style.fontSize = "18px";
+      document.getElementById("ics").style.display = "block";
+    </script>
+
+    <script>
+      document.getElementById("ics").innerHTML = "This is my first js";
+    </script>
+
+    <button onclick="document.getElementById('MyImg').src='images/bulb.jpeg'">
+      Turn On
+    </button>
+
+    <img id="MyImg" width="150px" />
+
+    <button
+      onclick="document.getElementById('MyImg').src='images/download.jpeg'"
+    >
+      Turn Off
+    </button>
+    <script>
+      Windows.alert("Conn Failed");
+    </script>
+
+    <br />
+    <a href="#" onclick="return confirm('Are you sure?');">Delete</a>
+    <script>
+      console.log(10000 / 50);
+    </script>
+  </body>
+</html>
