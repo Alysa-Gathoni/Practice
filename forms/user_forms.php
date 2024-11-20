@@ -60,7 +60,7 @@ class user_forms{
         </div>
 <?php
     }
-        public function set_pass_form($ObjGlob){
+        public function set_password_form($ObjGlob){
 ?>
       <div class="row align-items-md-stretch">
         <div class="col-md-9">
