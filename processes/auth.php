@@ -30,8 +30,7 @@ if(!filter_var($email_address, FILTER_VALIDATE_EMAIL)){
     $errors['email_format_err'] = 'Wrong email format';
 }
 
-// verify that the email domain is authorized (@strathmore.edu, @gmail.com, @yahoo.com, @mada.co.ke) and not (@yanky.net)
-$conf['valid_domains'] = ["strathmore.edu", "gmail.com", "yahoo.com", "mada.co.ke", "outlook.com", "STRATHMORE.EDU", "GMAIL.COM", "YAHOO.COM", "MADA.CO.KE", "OUTLOOK.COM"];
+// verify that the email domain is authorized
 
 $arr_email_address = explode("@", $email_address);
 $spot_dom = end($arr_email_address);
@@ -59,14 +58,11 @@ if (!ctype_alpha($username)) {
     $errors['usernameLetters_err'] = "Invalid username format. Username must contain letters only";
 }
 
-// Verify that the password is identical to the repeat passsword
-// verify that the password length is between 4 and 8 characters
 if(!count($errors)){
 
 // Implement 2FA (email => PHP-Mailer)
 // ===================================
 // Send email verification with an OTP (OTC)
-
 
             $cols = ['fullname', 'email', 'username', 'ver_code', 'ver_code_time'];
             $vals = [$fullname, $email_address, $username, $conf['verification_code'], $conf['ver_code_time']];
@@ -85,7 +81,7 @@ if(!count($errors)){
                 ]);
                 
                 header('Location: verify_code.php');
-                unset($_SESSION["fullname"], $_SESSION["email_address"], $_SESSION["username"]);
+                unset($_SESSION["fullname"], $_SESSION["username"]);
                 exit();
             }else{
                 die($insert);
@@ -102,16 +98,19 @@ if(!count($errors)){
             $errors = array();
 
             $ver_code = $_SESSION["ver_code"] = $conn->escape_values($_POST["ver_code"]);
+
+            // Verifying the code is a numeric value
             if(!is_numeric($ver_code)){
                 $errors['not_numeric'] = "Invalid code format. Verification Code must contain numbers only";
             }
-
+            
+            // Verifying the code has 6 characters
             if(strlen($ver_code) > 6 || strlen($ver_code) < 6){
                 $errors['lenght_err'] = "Invalid code length. Verification Code must have 6 digits";
             }
 
+            // Verifying the code exists
             $spot_ver_code_res = $conn->count_results(sprintf("SELECT ver_code FROM users WHERE ver_code = '%d' LIMIT 1", $ver_code));
-
             if ($spot_ver_code_res != 1){
                 $errors['ver_code_not_exist'] = "Invalid verification code";
             }else{
@@ -128,45 +127,139 @@ if(!count($errors)){
             $ObjGlob->setMsg('msg', 'Error(s)', 'invalid');
             $ObjGlob->setMsg('errors', $errors, 'invalid');
         }
-        }
+        }  
     }
 
-    public function setPassword($conn, $ObjGlob, $lang, $conf) {
-        if (isset($_POST['set_password'])) {
-            $password = $_POST['password'];
-            $confirm_password = $_POST['confirm_password'];
-            $errors = [];
-    
-            // Validate inputs
-            if (empty($password) || empty($confirm_password)) {
-                $errors['password_err'] = "Password fields cannot be empty.";
-            } elseif ($password !== $confirm_password) {
-                $errors['confirm_password_err'] = "Passwords do not match.";
-            } elseif (strlen($password) < 8) {
-                $errors['password_err'] = "Password must be at least 8 characters long.";
+    public function set_passphrase($conn, $ObjGlob, $ObjSendMail, $lang, $conf){
+        if(isset($_POST["set_pass"])){
+
+            $errors = array();
+            $passphrase = $_SESSION["passphrase"] = $conn->escape_values($_POST["passphrase"]);
+            $conf_passphrase = $_SESSION["conf_passphrase"] = $conn->escape_values($_POST["conf_passphrase"]);
+
+            // verify that the password length is between 4 and 8 characters
+            // Verify the password length limit
+            if(strlen($passphrase) > 30 || strlen($passphrase) < $conf['pass_length_min_limit'] ){
+                $errors['pass_length_err'] = "Invalid password length. Password must have between ".$conf['pass_length_min_limit'] ." and 30 characters.";
             }
-    
-            // If there are no errors, hash the password and update in DB
-            if (empty($errors)) {
-                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-                $user_id = $_SESSION['user_id']; // Ensure user ID is stored in the session
-    
-                // Update password in database
-                $sql = "UPDATE users SET password = :password WHERE userID = :userID";
-                $stmt = $conn->getConnection()->prepare($sql);
-                $stmt->bindParam(':password', $hashed_password);
-                $stmt->bindParam(':userID', $user_id);
-    
-                if ($stmt->execute()) {
-                    $ObjGlob->setMsg('msg', "Password has been successfully set.");
-                } else {
-                    $ObjGlob->setMsg('msg', "Failed to set password. Please try again.");
+            
+            // Verify that the password is identical to the repeat passsword
+            // Verify that the password and confirm password match
+            if(!strcmp($passphrase, $conf_passphrase) == 0){
+                $errors['conf_pass_err'] = "Passwords don't match.";
+            }
+
+            if(!count($errors)){
+
+                // hashing the password
+                $hash_pass = PASSWORD_HASH($conf_passphrase, PASSWORD_DEFAULT);
+
+                $cols = ['password', 'ver_code', 'ver_code_time'];
+                $vals = [$hash_pass, 0, $conf['ver_code_timeout']];
+                $where = ['ver_code' => $_SESSION['code_verified']];
+
+                $data = array_combine($cols, $vals);
+                $insert_passphrase = $conn->update('users', $data, $where);
+                if($insert_passphrase === TRUE){
+                    unset($_SESSION['code_verified']);
+                    header('Location: signin.php');
+                }else{
+                    die($insert_passphrase);
                 }
-            } else {
-                // Set errors to display in the form
-                $ObjGlob->setMsg('errors', $errors, 'error-class');
+            }else{
+                $ObjGlob->setMsg('msg', 'Error(s)', 'invalid');
+                $ObjGlob->setMsg('errors', $errors, 'invalid');
             }
         }
     }
-    
+    public function signin($conn, $ObjGlob, $ObjSendMail, $lang, $conf){
+        if(isset($_POST["signin"])){
+
+            $errors = array();
+            $username = $_SESSION["username"] = $conn->escape_values(strtolower($_POST["username"]));
+            $entered_password = $_SESSION["passphrase"] = $conn->escape_values($_POST["passphrase"]);
+            
+            // Verify Username Exists
+            $signin_query = (sprintf("SELECT * FROM users WHERE username = '%s' OR email = '%s' LIMIT 1", $username, $username));
+
+            // Counting results
+            $spot_username_res = $conn->count_results($signin_query);
+            if ($spot_username_res == 0){
+                $errors['usernamenot_err'] = "Username does not Exists";
+            }else{
+                // Executing the select query & Create a session.
+                $_SESSION["consort_tmp"] = $conn->select($signin_query);
+
+                // Use the session to fetch the stored password.
+                $stored_password = $_SESSION["consort_tmp"]["password"];
+
+                // Verify the password is correct
+                if(password_verify($entered_password, $stored_password)){
+                    // Create the login session
+                    $_SESSION["consort"] = $_SESSION["consort_tmp"];
+                }else{
+                    unset($_SESSION["consort_tmp"]);
+                    $errors['invalid_u_p'] = "Invalid username or password"; 
+                }
+            }
+
+            if(!count($errors)){
+                header('Location: dashboard.php');
+                exit();
+            }else{
+                $ObjGlob->setMsg('msg', 'Error(s)', 'invalid');
+                $ObjGlob->setMsg('errors', $errors, 'invalid');
+            }
+        }
+    }
+    public function signout($conn, $ObjGlob, $ObjSendMail, $lang, $conf){
+        if(isset($_GET["signout"])){
+            unset($_SESSION['consort']);
+            header('Location: '.  $conf['site_url']);
+            exit();
+        }
+    }
+    public function save_details($conn, $ObjGlob, $ObjSendMail, $lang, $conf){
+        if(isset($_POST["save_details"])){
+            $errors = array();
+            $genderId = $_SESSION["genderId"] = $conn->escape_values($_POST["genderId"]);
+            $roleId = $_SESSION["roleId"] = $conn->escape_values($_POST["roleId"]);
+
+            if(empty($genderId) || empty($roleId)){
+                $errors['invalid_selection'] = "Invalid selectionSomething missing"; 
+            }
+            if(!count($errors)){
+                $cols = ['genderId', 'roleId'];
+                $vals = [$genderId, $roleId];
+                $where = ['userId' => $_SESSION['consort']['userId']];
+
+                $data = array_combine($cols, $vals);
+                $complete_reg = $conn->update('users', $data, $where);
+                if($complete_reg === TRUE){
+                    $_SESSION["consort"]["genderId"] = $genderId;
+                    $_SESSION["consort"]["roleId"] = $roleId;
+                    header('Location: dashboard.php');
+                    exit();
+                }
+            }else{
+                $ObjGlob->setMsg('msg', 'Error(s)', 'invalid');
+                $ObjGlob->setMsg('errors', $errors, 'invalid');
+            }
+
+        }
+    }
+    public function update_profile($conn, $ObjGlob, $ObjSendMail, $lang, $conf){
+        if(isset($_POST["update_profile"])){
+            $errors = array();
+
+            $fullname = $_SESSION["fullname"] = $conn->escape_values(ucwords(strtolower($_POST["fullname"])));
+            $email_address = $_SESSION["email_address"] = $conn->escape_values(strtolower($_POST["email_address"]));
+            $username = $_SESSION["username"] = $conn->escape_values(strtolower($_POST["username"]));
+
+
+
+
+            $genderId = $_SESSION["genderId"] = $conn->escape_values($_POST["genderId"]);
+        }
+    }
 }

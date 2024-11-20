@@ -80,13 +80,17 @@ class menus{
                   <li class="nav-item">
                     <a class="nav-link" href="#">Contact Us</a>
                   </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="signup.php">Sign Up</a>
-                  </li>
                 </ul>
-                <form role="search">
-                  <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-                </form>
+<div class="d-flex">
+        <?php
+if(isset($_SESSION['consort'])){ ?>
+  <a class="btn btn-outline-warning main_menu" href="profile.php">Profile</a>
+  <a class="btn btn-outline-danger main_menu" href="?signout">Sign Out</a>
+<?php }else{ ?>
+  <a class="btn btn-outline-success main_menu" href="signin.php">Sign In</a>
+  <a class="btn btn-outline-success main_menu" href="signup.php">Sign Up</a>
+<?php } ?>
+</div>
               </div>
             </div>
           </nav>
